@@ -1,30 +1,17 @@
-
-from datetime import datetime
-from dateutil.parser import parse
 import gzip
+import logging
 import os
-
-from satstac import Collection, Item, utils
 import requests
 import sys
 
+from datetime import datetime
+from dateutil.parser import parse
+from satstac import Collection, Item, utils
+
 from .version import __version__
-from satstac import Collection
 
 
 logger = logging.getLogger(__name__)
-
-
-
-def main(cls, start_date=None, end_date=None):
-    col = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
-    #catalog.add_collection(col)
-
-    cls.add_items_to_collection(col, start_date=start_date, end_date=end_date)
-
-
-
-
 
 
 # pre-collection
@@ -33,8 +20,11 @@ def main(cls, start_date=None, end_date=None):
 # productId,entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 
 
-def add_items_to_collection(collection, start_date=None, end_date=None):
+def add_items(catalog, start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
+    collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+    catalog.add_catalog(collection)
+
     for i, record in enumerate(records()):
         dt = record['datetime'].date()
         if (i % 10000) == 0:
@@ -48,16 +38,20 @@ def add_items_to_collection(collection, start_date=None, end_date=None):
         item = transform(record)
         print(record['id'], dt, start_date, end_date)
         #import pdb; pdb.set_trace()
-        #collection.add_item(item)
+        collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
 
 
-def records():
+def records(collections='all'):
     """ Return generator function for list of scenes """
 
     filenames = {
         'scene_list.gz': 'https://landsat-pds.s3.amazonaws.com/scene_list.gz',
         'scene_list-c1.gz': 'https://landsat-pds.s3.amazonaws.com/c1/L8/scene_list.gz'
     }
+    if collections == 'pre':
+        del filenames['scene_list-c1.gz']
+    elif collections == 'c1':
+        del filenames['scene_list.gz']
 
     for fout in filenames:
         filename = filenames[fout]
@@ -84,8 +78,8 @@ def records():
                         'landsat:product_id': product_id,
                         'landsat:entity_id': data[0],
                         'landsat:processing_level': data[3],
-                        'landsat:wrs_path': data[4],
-                        'landsat:wrs_row': data[5]
+                        'landsat:path': data[4],
+                        'landsat:row': data[5]
                     },
                     'url': data[-1]
                 }
