@@ -16,7 +16,7 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' not in x]
 
 setup(
-    name='satstac-landsat',
+    name='satstac.landsat',
     author='Matthew Hanson (matthewhanson)',
     author_email='matt.a.hanson@gmail.com',
     version=__version__,
@@ -30,7 +30,8 @@ setup(
     ],
     keywords='',
     entry_points={
-        'console_scripts': ['sat-stac-landsat=satstac.landsat.main:cli'],
+        'console_scripts': ['sat-stac-landsat=satstac.landsat.cliy
+        :cli'],
     },
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
