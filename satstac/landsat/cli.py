@@ -2,6 +2,10 @@ import argparse
 import logging
 import sys
 
+from datetime import datetime
+from satstac import Catalog
+import satstac.landsat as landsat
+from .version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +24,14 @@ def parse_args(args):
     subparsers = parser0.add_subparsers(dest='command')
 
     # command 1
-    parser = subparsers.add_parser('cmd1', parents=[pparser], help='Command 1', formatter_class=dhf)
-    # parser.add_argument()
+    parser = subparsers.add_parser('ingest', parents=[pparser], help='Ingest records into catalog', formatter_class=dhf)
+    parser.add_argument('catalog', help='Catalog that contains the Collection')
+    valid_date = lambda d: datetime.strptime(d, '%Y-%m-%d').date()
+    parser.add_argument('--start', help='Start date of ingestion', default=None, type=valid_date)
+    parser.add_argument('--end', help='End date of ingestion', default=None, type=valid_date)
 
     # command 2
-    parser = subparsers.add_parser('cmd2', parents=[pparser], help='Command 2', formatter_class=dhf)
+    #parser = subparsers.add_parser('cmd2', parents=[pparser], help='Command 2', formatter_class=dhf)
     # parser.add_argument()
 
     # turn Namespace into dictinary
@@ -38,10 +45,12 @@ def cli():
     logger.setLevel(args.pop('log') * 10)
     cmd = args.pop('command')
 
-    if cmd == 'cmd1':
-        print(cmd)
+    if cmd == 'ingest':
+        cat = Catalog.open(args['catalog'])
+        landsat.add_items(cat, start_date=args['start'], end_date=args['end'])
     elif cmd == 'cmd2':
         print(cmd)
+
 
 if __name__ == "__main__":
     cli()
