@@ -30,8 +30,7 @@ setup(
     ],
     keywords='',
     entry_points={
-        'console_scripts': ['sat-stac-landsat=satstac.landsat.cliy
-        :cli'],
+        'console_scripts': ['sat-stac-landsat=satstac.landsat.cli:cli'],
     },
     packages=find_packages(exclude=['docs', 'tests*']),
     include_package_data=True,
