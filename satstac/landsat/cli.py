@@ -3,6 +3,8 @@ import logging
 import sys
 
 from datetime import datetime
+
+import satstac
 from satstac import Catalog
 import satstac.landsat as landsat
 from .version import __version__
@@ -44,6 +46,8 @@ def cli():
     args = parse_args(sys.argv[1:])
     logger.setLevel(args.pop('log') * 10)
     cmd = args.pop('command')
+
+    
 
     if cmd == 'ingest':
         cat = Catalog.open(args['catalog'])
