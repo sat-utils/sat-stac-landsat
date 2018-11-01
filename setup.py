@@ -16,12 +16,12 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' not in x]
 
 setup(
-    name='satstac.landsat',
+    name='sat-stac-landsat',
     author='Matthew Hanson (matthewhanson)',
     author_email='matt.a.hanson@gmail.com',
     version=__version__,
     description='Creates STAC catalog for Landsat-8',
-    url='https://github.com/developmentseed/sat-stac-landsat.git',
+    url='https://github.com/sat-utils/sat-stac-landsat.git',
     license='MIT',
     classifiers=[
         'Intended Audience :: Developers',
