@@ -36,12 +36,17 @@ def add_items(catalog, start_date=None, end_date=None):
         if end_date is not None and dt > end_date:
             # stop if after end_date
             continue
-        item = transform(record)
+        try:
+            item = transform(record)
+        except Exception as err:
+            fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
+            logger.error('Error getting %s: %s' % (fname, err))
+            continue
         try:
             collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
             logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
         except Exception as err:
-            logger.error('Error ingesting %s: %s' % (item.id, err))
+            logger.error('Error adding %s: %s' % (item.id, err))
         
 
 
