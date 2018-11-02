@@ -39,7 +39,7 @@ def add_items(catalog, start_date=None, end_date=None):
         item = transform(record)
         try:
             collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
-            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now)
+            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
         except Exception as err:
             logger.error('Error ingesting %s: %s' % (item.id, err))
         
