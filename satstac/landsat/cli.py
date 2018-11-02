@@ -9,6 +9,10 @@ from satstac import Catalog
 import satstac.landsat as landsat
 from .version import __version__
 
+# quiet loggers
+logging.getLogger('urllib3').propagate = False
+logging.getLogger('requests').propagate = False
+
 logger = logging.getLogger(__name__)
 
 
