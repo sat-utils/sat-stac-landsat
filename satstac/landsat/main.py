@@ -28,8 +28,8 @@ def add_items(catalog, start_date=None, end_date=None):
     for i, record in enumerate(records()):
         now = datetime.now()
         dt = record['datetime'].date()
-        if (i % 1000) == 0:
-            print('%s records scanned' % i)
+        if (i % 10000) == 0:
+            logger.info('%s: %s records scanned' % (datetime.now(), i))
         if start_date is not None and dt < start_date:
             # skip to next if before start_date
             continue
