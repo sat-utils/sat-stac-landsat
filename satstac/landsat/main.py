@@ -26,6 +26,7 @@ def add_items(catalog, start_date=None, end_date=None):
     catalog.add_catalog(collection)
 
     for i, record in enumerate(records()):
+        now = datetime.now()
         dt = record['datetime'].date()
         if (i % 1000) == 0:
             print('%s records scanned' % i)
@@ -36,10 +37,12 @@ def add_items(catalog, start_date=None, end_date=None):
             # stop if after end_date
             continue
         item = transform(record)
-        #print(record['id'], dt, start_date, end_date)
-        collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
-        if i == 10:
-            break
+        try:
+            collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
+            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now)
+        except Exception as err:
+            logger.error('Error ingesting %s: %s' % (item.id, err))
+        
 
 
 def records(collections='all'):
@@ -88,7 +91,6 @@ def records(collections='all'):
 
 def transform(data):
     """ Transform Landsat metadata into a STAC item """
-    now = datetime.now()
     # get metadata
     md = get_metadata(data['url'].replace('index.html', '%s_MTL.txt' % data['id']))
 
@@ -124,7 +126,6 @@ def transform(data):
         'properties': data['properties'],
         'assets': assets
     }
-    print('Transform took %s' % (datetime.now()-now))
     return Item(_item)
 
 
