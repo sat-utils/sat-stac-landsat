@@ -44,10 +44,8 @@ def parse_args(args):
 
 def cli():
     args = parse_args(sys.argv[1:])
-    logger.setLevel(args.pop('log') * 10)
-    cmd = args.pop('command')
-
-    
+    logging.basicConfig(stream=sys.stdout, level=args.pop('log') * 10)
+    cmd = args.pop('command')   
 
     if cmd == 'ingest':
         cat = Catalog.open(args['catalog'])
