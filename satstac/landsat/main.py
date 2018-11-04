@@ -113,7 +113,7 @@ def transform(data):
     ]]
 
     assets = collection.data['assets']
-    assets.update({
+    assets = utils.dict_merge(assets, {
         'index': {'href': data['url']},
         'thumbnail': {'href': root_url + '_thumb_large.jpg'},
         'B1': {'href': root_url + '_B1.TIF'},
