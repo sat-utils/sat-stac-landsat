@@ -14,6 +14,9 @@ from .version import __version__
 logger = logging.getLogger(__name__)
 
 
+collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+
+
 # pre-collection
 # entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 # collection-1
@@ -22,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 def add_items(catalog, start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
-    collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+    
     catalog.add_catalog(collection)
 
     for i, record in enumerate(records()):
@@ -96,6 +99,7 @@ def records(collections='all'):
 
 def transform(data):
     """ Transform Landsat metadata into a STAC item """
+    root_url = data['url'].replace('index.html', '')
     # get metadata
     md = get_metadata(data['url'].replace('index.html', '%s_MTL.txt' % data['id']))
 
@@ -108,7 +112,25 @@ def transform(data):
         [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])]
     ]]
 
-    assets = {}
+    assets = collection.data['assets']
+    assets.update({
+        'index': {'href': data['url']},
+        'thumbnail': {'href': root_url + '_thumb_large.jpg'},
+        'B1': {'href': root_url + '_B1.TIF'},
+        'B2': {'href': root_url + '_B2.TIF'},
+        'B3': {'href': root_url + '_B3.TIF'},
+        'B4': {'href': root_url + '_B4.TIF'},
+        'B5': {'href': root_url + '_B5.TIF'},
+        'B6': {'href': root_url + '_B6.TIF'},
+        'B7': {'href': root_url + '_B7.TIF'},
+        'B8': {'href': root_url + '_B8.TIF'},
+        'B9': {'href': root_url + '_B9.TIF'},
+        'B10': {'href': root_url + '_B10.TIF'},
+        'B11': {'href': root_url + '_B11.TIF'},
+        'ANG': {'href': root_url + '_ANG.txt'},
+        'MTL': {'href': root_url + '_MTL.txt'},
+        'BQA': {'href': root_url + '_BQA.TIF'},
+    })
 
     data['properties'].update({
         'collection': 'landsat-8-l1',
