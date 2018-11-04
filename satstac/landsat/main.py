@@ -65,7 +65,7 @@ def records(collections='all'):
     for fout in filenames:
         filename = filenames[fout]
         if not os.path.exists(fout):
-            fout = utils.download_file(filename)
+            fout = utils.download_file(filename, filename=fout)
         with gzip.open(fout,'rt') as f:
             header = f.readline()
             for line in f:
@@ -79,7 +79,7 @@ def records(collections='all'):
                     id = data[0]
                 yield {
                     'id': id,
-                    'bbox': [data[7], data[6], data[9], data[8]],
+                    'bbox': [float(data[7]), float(data[6]), float(data[9]), float(data[8])],
                     'center_lat': (float(data[6]) + float(data[8]))/2,
                     'datetime': parse(data[1]),
                     'properties': {
@@ -101,11 +101,11 @@ def transform(data):
 
     # geo
     coordinates = [[
-        [md['CORNER_UL_LON_PRODUCT'], md['CORNER_UL_LAT_PRODUCT']],
-        [md['CORNER_UR_LON_PRODUCT'], md['CORNER_UR_LAT_PRODUCT']],
-        [md['CORNER_LR_LON_PRODUCT'], md['CORNER_LR_LON_PRODUCT']],
-        [md['CORNER_LL_LON_PRODUCT'], md['CORNER_LL_LAT_PRODUCT']],
-        [md['CORNER_UL_LON_PRODUCT'], md['CORNER_UL_LAT_PRODUCT']]
+        [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])],
+        [float(md['CORNER_UR_LON_PRODUCT']), float(md['CORNER_UR_LAT_PRODUCT'])],
+        [float(md['CORNER_LR_LON_PRODUCT']), float(md['CORNER_LR_LON_PRODUCT'])],
+        [float(md['CORNER_LL_LON_PRODUCT']), float(md['CORNER_LL_LAT_PRODUCT'])],
+        [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])]
     ]]
 
     assets = {}
