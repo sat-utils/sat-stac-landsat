@@ -101,7 +101,7 @@ def transform(data):
     """ Transform Landsat metadata into a STAC item """
     root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
     # get metadata
-    md = get_metadata(root_url + '_MTL.txt'))
+    md = get_metadata(root_url + '_MTL.txt')
 
     # geo
     coordinates = [[
