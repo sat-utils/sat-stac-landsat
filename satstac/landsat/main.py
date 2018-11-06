@@ -67,8 +67,9 @@ def records(collections='all'):
 
     for fout in filenames:
         filename = filenames[fout]
-        if not os.path.exists(fout):
-            fout = utils.download_file(filename, filename=fout)
+        #if not os.path.exists(fout):
+        # file is updated every day, so just download it every time
+        fout = utils.download_file(filename, filename=fout)
         with gzip.open(fout,'rt') as f:
             header = f.readline()
             for line in f:
