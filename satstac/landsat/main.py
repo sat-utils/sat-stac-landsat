@@ -23,12 +23,12 @@ collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-
 # productId,entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 
 
-def add_items(catalog, start_date=None, end_date=None):
+def add_items(catalog, collections='all', start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
     
     catalog.add_catalog(collection)
 
-    for i, record in enumerate(records()):
+    for i, record in enumerate(records(collections=collections)):
         now = datetime.now()
         dt = record['datetime'].date()
         if (i % 10000) == 0:
@@ -56,14 +56,11 @@ def add_items(catalog, start_date=None, end_date=None):
 def records(collections='all'):
     """ Return generator function for list of scenes """
 
-    filenames = {
-        'scene_list.gz': 'https://landsat-pds.s3.amazonaws.com/scene_list.gz',
-        'scene_list-c1.gz': 'https://landsat-pds.s3.amazonaws.com/c1/L8/scene_list.gz'
-    }
-    if collections == 'pre':
-        del filenames['scene_list-c1.gz']
-    elif collections == 'c1':
-        del filenames['scene_list.gz']
+    filenames = {}
+    if collections in ['pre', 'all']:
+        filenames['scene_list.gz'] = 'https://landsat-pds.s3.amazonaws.com/scene_list.gz'
+    if collections in ['c1', 'all']:
+        filenames['scene_list-c1.gz'] ='https://landsat-pds.s3.amazonaws.com/c1/L8/scene_list.gz'
 
     for fout in filenames:
         filename = filenames[fout]
