@@ -54,7 +54,7 @@ def cli():
 
     if cmd == 'ingest':
         cat = Catalog.open(args['catalog'])
-        landsat.add_items(cat, collections=args['collection'], start_date=args['start'], end_date=args['end'])
+        landsat.add_items(cat, collections=args['collections'], start_date=args['start'], end_date=args['end'])
     elif cmd == 'cmd2':
         print(cmd)
 

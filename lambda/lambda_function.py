@@ -9,4 +9,3 @@ logger.setLevel(logging.DEBUG)
 
 def lambda_handler(event, context):
     logger.info(event)
-    logger.info(context)
