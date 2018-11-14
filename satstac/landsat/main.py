@@ -80,17 +80,7 @@ def records(collections='all'):
                     id = data[0]
                 yield {
                     'id': id,
-                    'bbox': [float(data[7]), float(data[6]), float(data[9]), float(data[8])],
-                    'center_lat': (float(data[6]) + float(data[8]))/2,
                     'datetime': parse(data[1]),
-                    'properties': {
-                        'eo:cloud_cover': data[2],
-                        'landsat:product_id': product_id,
-                        'landsat:entity_id': data[0],
-                        'landsat:processing_level': data[3],
-                        'landsat:path': data[4],
-                        'landsat:row': data[5]
-                    },
                     'url': data[-1]
                 }
 
@@ -105,10 +95,14 @@ def transform(data):
     coordinates = [[
         [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])],
         [float(md['CORNER_UR_LON_PRODUCT']), float(md['CORNER_UR_LAT_PRODUCT'])],
-        [float(md['CORNER_LR_LON_PRODUCT']), float(md['CORNER_LR_LON_PRODUCT'])],
+        [float(md['CORNER_LR_LON_PRODUCT']), float(md['CORNER_LR_LAT_PRODUCT'])],
         [float(md['CORNER_LL_LON_PRODUCT']), float(md['CORNER_LL_LAT_PRODUCT'])],
         [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])]
     ]]
+
+    lats = [c[1] for c in coordinates[0]]
+    lons = [c[0] for c in coordinates[0]]
+    bbox = [min(lons), min(lats), max(lons), max(lats)]
 
     assets = collection.data['assets']
     assets = utils.dict_merge(assets, {
@@ -130,25 +124,32 @@ def transform(data):
         'BQA': {'href': root_url + '_BQA.TIF'},
     })
 
-    data['properties'].update({
+    props = {
         'collection': 'landsat-8-l1',
-        'datetime': data['datetime'].isoformat(),
+        'datetime': (md['DATE_ACQUIRED'] + md['SCENE_CENTER_TIME']).isoformat(),
         'eo:sun_azimuth': md['SUN_AZIMUTH'],
-        'eo:sun_elevation': md['SUN_ELEVATION']
-    })
+        'eo:sun_elevation': md['SUN_ELEVATION'],
+        'eo:cloud_cover': md['CLOUD_COVER'],
+        'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
+        'landsat:scene_id': md['LANDSAT_SCENE_ID'],
+        'landsat:processing_level': md['DATA_TYPE'],
+        'landsat:path': md['WRS_PATH'],
+        'landsat:row': md['WRS_ROW']
+    }
 
     if 'UTM_ZONE' in md:
-        data['properties']['eo:epsg'] = int(('326' if data['center_lat'] > 0 else '327') + md['UTM_ZONE'])
+        center_lat = (min(lats) + max(lats))/2.0
+        props['eo:epsg'] = int(('326' if center_lat > 0 else '327') + md['UTM_ZONE'])
 
     _item = {
         'type': 'Feature',
         'id': data['id'],
-        'bbox': data['bbox'],
+        'bbox': bbox,
         'geometry': {
             'type': 'Polygon',
             'coordinates': coordinates
         },
-        'properties': data['properties'],
+        'properties':props,
         'assets': assets
     }
     return Item(_item)
