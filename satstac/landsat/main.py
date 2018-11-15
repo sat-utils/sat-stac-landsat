@@ -130,7 +130,7 @@ def transform(data):
 
     props = {
         'collection': 'landsat-8-l1',
-        'datetime': (md['DATE_ACQUIRED'] + md['SCENE_CENTER_TIME']).isoformat(),
+        'datetime': parse('%sT%s' % (md['DATE_ACQUIRED'], md['SCENE_CENTER_TIME'])).isoformat(),
         'eo:sun_azimuth': md['SUN_AZIMUTH'],
         'eo:sun_elevation': md['SUN_ELEVATION'],
         'eo:cloud_cover': md['CLOUD_COVER'],
