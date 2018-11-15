@@ -14,7 +14,7 @@ from .version import __version__
 logger = logging.getLogger(__name__)
 
 
-
+collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
 
 
 # pre-collection
@@ -28,7 +28,6 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
     
     cols = {c.id: c for c in catalog.collections()}
     if 'landsat-8-l1' not in cols.keys():
-        collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
         collection = catalog.add_catalog(collection)
     else:
         collection = cols['landsat-8-l1']
