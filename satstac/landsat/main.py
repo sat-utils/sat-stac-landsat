@@ -14,7 +14,7 @@ from .version import __version__
 logger = logging.getLogger(__name__)
 
 
-collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+
 
 
 # pre-collection
@@ -26,7 +26,12 @@ collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-
 def add_items(catalog, collections='all', start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
     
-    catalog.add_catalog(collection)
+    cols = {c.id: c for c in catalog.collections()}
+    if 'landsat-8-l1' not in cols.keys():
+        collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+        collection = catalog.add_catalog(collection)
+    else:
+        collection = cols['landsat-8-l1']
 
     for i, record in enumerate(records(collections=collections)):
         now = datetime.now()
