@@ -1,1 +1,1 @@
-sat-stac==0.1.0b4
+sat-stac~=0.1.0b6
