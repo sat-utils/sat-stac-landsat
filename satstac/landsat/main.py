@@ -28,7 +28,8 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
     
     cols = {c.id: c for c in catalog.collections()}
     if 'landsat-8-l1' not in cols.keys():
-        collection = catalog.add_catalog(collection)
+        catalog.add_catalog(collection)
+        cols = {c.id: c for c in catalog.collections()}
     else:
         collection = cols['landsat-8-l1']
 
@@ -54,7 +55,6 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
-        
 
 
 def records(collections='all'):

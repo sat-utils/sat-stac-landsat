@@ -33,8 +33,8 @@ def lambda_handler(event, context):
             'url': url
         }
         # transform to STAC
-        stac = transform(data)
-        item = collection.add_item(stac, path='${landsat:path}/${landsat:row}/${date}')
+        item = transform(data)
+        collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
         logger.info('Added item %s as %s' % (item, item.filename))
         print('Added item %s as %s' % (item, item.filename))
-        client.publish(TopicArn=sns_arn, Message=json.dumps(stac.data))
+        client.publish(TopicArn=sns_arn, Message=json.dumps(item.data))
