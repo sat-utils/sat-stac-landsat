@@ -30,7 +30,7 @@ jobs:
             pip install -r requirements-dev.txt
             pip install .
             cd test
-            pytest -v --cov satstac --cov-report term-missing
+            pytest -v --cov satstac.landsat --cov-report term-missing
       - save_cache:
           key: v1-dependencies36-{{ checksum "requirements.txt"}}
           paths:
@@ -39,6 +39,7 @@ jobs:
           name: Deploy
           command: |
             if [[  "$CIRCLE_BRANCH" == 'master' ]]; then
+              pip install awscli
               pip install . -t lambda/
               cd lambda/; zip -ru ../lambda-deploy.zip ./; cd ..
               aws lambda --region us-east-1 update-function-code --function-name sat-stac-landsat --zip-file fileb://lambda-deploy.zip
