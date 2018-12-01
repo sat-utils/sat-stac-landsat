@@ -8,18 +8,18 @@ jobs:
     steps:
       - restore_cache:
           keys:
-            - v1-repo-{{ .Branch }}-{{ .Revision }}
-            - v1-repo-{{ .Branch }}
-            - v1-repo
+            - v0-repo-{{ .Branch }}-{{ .Revision }}
+            - v0-repo-{{ .Branch }}
+            - v0-repo
       - checkout
       - save_cache:
-          key: v1-repo-{{ .Branch }}-{{ .Revision }}
+          key: v0-repo-{{ .Branch }}-{{ .Revision }}
           paths:
             - ~/project
       - restore_cache:
           keys: 
-            - v1-dependencies36-{{ checksum "requirements.txt"}}
-            - v1-dependencies36
+            - v0-dependencies36-{{ checksum "requirements.txt"}}
+            - v0-dependencies36
       - run: 
           name: Test
           command: |
@@ -32,7 +32,7 @@ jobs:
             cd test
             pytest -v --cov satstac.landsat --cov-report term-missing
       - save_cache:
-          key: v1-dependencies36-{{ checksum "requirements.txt"}}
+          key: v0-dependencies36-{{ checksum "requirements.txt"}}
           paths:
             - ~/venv
       - run:
