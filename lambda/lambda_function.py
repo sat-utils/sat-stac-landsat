@@ -9,10 +9,8 @@ from datetime import datetime
 from satstac import STACError, Collection
 from satstac.landsat import transform
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
 logger = logging.getLogger(__name__)
-
+logger.setLevel(logging.DEBUG)
 
 client = boto3.client('sns', region_name='us-west-2')
 
@@ -35,6 +33,6 @@ def lambda_handler(event, context):
         # transform to STAC
         item = transform(data)
         collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
-        logger.info('Added item %s as %s' % (item, item.filename))
-        print('Added item %s as %s' % (item, item.filename))
+        logger.info('Added %s as %s' % (item, item.filename))
         client.publish(TopicArn=sns_arn, Message=json.dumps(item.data))
+        logger.info('Published to %s' % sns_arn)
