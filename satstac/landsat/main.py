@@ -13,8 +13,7 @@ from .version import __version__
 
 logger = logging.getLogger(__name__)
 
-
-collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
 
 
 # pre-collection
@@ -28,10 +27,9 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
     
     cols = {c.id: c for c in catalog.collections()}
     if 'landsat-8-l1' not in cols.keys():
-        catalog.add_catalog(collection)
+        catalog.add_catalog(collection_l8l1)
         cols = {c.id: c for c in catalog.collections()}
-    else:
-        collection = cols['landsat-8-l1']
+    collection = cols['landsat-8-l1']
 
     for i, record in enumerate(records(collections=collections)):
         now = datetime.now()
@@ -109,7 +107,7 @@ def transform(data):
     lons = [c[0] for c in coordinates[0]]
     bbox = [min(lons), min(lats), max(lons), max(lats)]
 
-    assets = collection.data['assets']
+    assets = collection_l8l1.data['assets']
     assets = utils.dict_merge(assets, {
         'index': {'href': data['url']},
         'thumbnail': {'href': root_url + '_thumb_large.jpg'},
