@@ -50,7 +50,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             continue
         try:
             if item['landsat:tier'] != 'RT':
-                collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
+                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
                 logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
             else:
                 logger.info('Skipping real-time data: %s' % item.id)
