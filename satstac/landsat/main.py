@@ -51,8 +51,11 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
-            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
+            if item['landsat:tier'] != 'RT':
+                collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
+                logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
+            else:
+                logger.info('Skipping real-time data: %s' % item.id)
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 
@@ -68,8 +71,6 @@ def records(collections='all'):
 
     for fout in filenames:
         filename = filenames[fout]
-        #if not os.path.exists(fout):
-        # file is updated every day, so just download it every time
         fout = utils.download_file(filename, filename=fout)
         with gzip.open(fout,'rt') as f:
             header = f.readline()
@@ -134,11 +135,12 @@ def transform(data):
         'eo:sun_azimuth': md['SUN_AZIMUTH'],
         'eo:sun_elevation': md['SUN_ELEVATION'],
         'eo:cloud_cover': md['CLOUD_COVER'],
+        'eo:row': md['WRS_ROW'],
+        'eo:column': md['WRS_PATH'],
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
-        'landsat:path': md['WRS_PATH'],
-        'landsat:row': md['WRS_ROW']
+        'landsat:tier': md['COLLECTION_CATEGORY']
     }
 
     if 'UTM_ZONE' in md:
