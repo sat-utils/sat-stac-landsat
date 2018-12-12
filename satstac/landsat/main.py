@@ -132,7 +132,7 @@ def transform(data):
         'datetime': parse('%sT%s' % (md['DATE_ACQUIRED'], md['SCENE_CENTER_TIME'])).isoformat(),
         'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
         'eo:sun_elevation': float(md['SUN_ELEVATION']),
-        'eo:cloud_cover': int(md['CLOUD_COVER']),
+        'eo:cloud_cover': int(float(md['CLOUD_COVER'])),
         'eo:row': int(md['WRS_ROW']),
         'eo:column': int(md['WRS_PATH']),
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
