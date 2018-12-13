@@ -13,8 +13,7 @@ from .version import __version__
 
 logger = logging.getLogger(__name__)
 
-
-collection = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
+collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
 
 
 # pre-collection
@@ -28,10 +27,9 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
     
     cols = {c.id: c for c in catalog.collections()}
     if 'landsat-8-l1' not in cols.keys():
-        catalog.add_catalog(collection)
+        catalog.add_catalog(collection_l8l1)
         cols = {c.id: c for c in catalog.collections()}
-    else:
-        collection = cols['landsat-8-l1']
+    collection = cols['landsat-8-l1']
 
     for i, record in enumerate(records(collections=collections)):
         now = datetime.now()
@@ -51,8 +49,11 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
-            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
+            if item['landsat:tier'] != 'RT':
+                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
+                logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
+            else:
+                logger.info('Skipping real-time data: %s' % item.id)
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 
@@ -68,8 +69,6 @@ def records(collections='all'):
 
     for fout in filenames:
         filename = filenames[fout]
-        #if not os.path.exists(fout):
-        # file is updated every day, so just download it every time
         fout = utils.download_file(filename, filename=fout)
         with gzip.open(fout,'rt') as f:
             header = f.readline()
@@ -108,7 +107,7 @@ def transform(data):
     lons = [c[0] for c in coordinates[0]]
     bbox = [min(lons), min(lats), max(lons), max(lats)]
 
-    assets = collection.data['assets']
+    assets = collection_l8l1.data['assets']
     assets = utils.dict_merge(assets, {
         'index': {'href': data['url']},
         'thumbnail': {'href': root_url + '_thumb_large.jpg'},
@@ -131,14 +130,15 @@ def transform(data):
     props = {
         'collection': 'landsat-8-l1',
         'datetime': parse('%sT%s' % (md['DATE_ACQUIRED'], md['SCENE_CENTER_TIME'])).isoformat(),
-        'eo:sun_azimuth': md['SUN_AZIMUTH'],
-        'eo:sun_elevation': md['SUN_ELEVATION'],
-        'eo:cloud_cover': md['CLOUD_COVER'],
+        'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
+        'eo:sun_elevation': float(md['SUN_ELEVATION']),
+        'eo:cloud_cover': int(float(md['CLOUD_COVER'])),
+        'eo:row': int(md['WRS_ROW']),
+        'eo:column': int(md['WRS_PATH']),
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
-        'landsat:path': md['WRS_PATH'],
-        'landsat:row': md['WRS_ROW']
+        'landsat:tier': md.get('COLLECTION_CATEGORY', 'pre-collection')
     }
 
     if 'UTM_ZONE' in md:
