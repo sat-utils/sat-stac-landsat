@@ -34,5 +34,5 @@ def lambda_handler(event, context):
         item = transform(data)
         collection.add_item(item, path='${landsat:path}/${landsat:row}/${date}')
         logger.info('Added %s as %s' % (item, item.filename))
-        #client.publish(TopicArn=sns_arn, Message=json.dumps(item.data))
+        client.publish(TopicArn=sns_arn, Message=json.dumps(item.data))
         logger.info('Published to %s' % sns_arn)
