@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         }
         # transform to STAC
         item = transform(data)
-        logger.debug('Item: %s' % json.dumps(item))
+        logger.debug('Item: %s' % json.dumps(item.data))
         if item['landsat:tier'] != 'RT':
             collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
             logger.info('Added %s as %s' % (item, item.filename))
