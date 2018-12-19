@@ -49,11 +49,8 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            if item['landsat:tier'] != 'RT':
-                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
-                logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
-            else:
-                logger.info('Skipping real-time data: %s' % item.id)
+            collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
+            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 
@@ -75,14 +72,9 @@ def records(collections='all'):
             for line in f:
                 data = line.replace('\n', '').split(',')
                 if len(data) == 12:
-                    product_id = data[0]
                     data = data[1:]
-                    id = product_id
-                else:
-                    product_id = None
-                    id = data[0]
                 yield {
-                    'id': id,
+                    'id': data[0],
                     'datetime': parse(data[1]),
                     'url': data[-1]
                 }
