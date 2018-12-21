@@ -41,7 +41,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             continue
         fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
         if os.path.exists(fname):
-            item = Item(fname)
+            item = Item.open(fname)
             if item['landsat:tier'] != 'RT':
                 continue
         try:
