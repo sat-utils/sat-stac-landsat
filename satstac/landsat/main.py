@@ -49,7 +49,8 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            fname = item.get_filename(path='${eo:column}/${eo:row}/${date}')
+            fname = os.path.join(os.path.dirname(collection.filename),
+                                 item.get_filename(path='${eo:column}/${eo:row}/${date}'))
             if not os.path.exists(fname):
                 collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
         except Exception as err:
