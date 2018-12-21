@@ -40,17 +40,20 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             # skip to next if before start_date or after end_date
             continue
         fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
-        if not os.path.exists(fname):
-            try:
-                item = transform(record)
-            except Exception as err:
-                fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
-                logger.error('Error getting %s: %s' % (fname, err))
+        if os.path.exists(fname):
+            item = Item(fname)
+            if item['landsat:tier'] != 'RT':
                 continue
-            try:
-                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
-            except Exception as err:
-                logger.error('Error adding %s: %s' % (item.id, err))
+        try:
+            item = transform(record)
+        except Exception as err:
+            fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
+            logger.error('Error getting %s: %s' % (fname, err))
+            continue
+        try:
+            collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
+        except Exception as err:
+            logger.error('Error adding %s: %s' % (item.id, err))
 
 
 def records(collections='all'):
