@@ -49,8 +49,9 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
-            logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
+            fname = item.get_filename(path='${eo:column}/${eo:row}/${date}')
+            if not os.path.exists(fname):
+                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 
