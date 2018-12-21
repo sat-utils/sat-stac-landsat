@@ -36,25 +36,21 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         dt = record['datetime'].date()
         if (i % 10000) == 0:
             logger.info('%s: %s records scanned' % (datetime.now(), i))
-        if start_date is not None and dt < start_date:
-            # skip to next if before start_date
+        if (start_date is not None and dt < start_date) or (end_date is not None and dt > end_date):
+            # skip to next if before start_date or after end_date
             continue
-        if end_date is not None and dt > end_date:
-            # stop if after end_date
-            continue
-        try:
-            item = transform(record)
-        except Exception as err:
-            fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
-            logger.error('Error getting %s: %s' % (fname, err))
-            continue
-        try:
-            fname = os.path.join(os.path.dirname(collection.filename),
-                                 item.get_filename(path='${eo:column}/${eo:row}/${date}'))
-            if not os.path.exists(fname):
+        fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
+        if not os.path.exists(fname):
+            try:
+                item = transform(record)
+            except Exception as err:
+                fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
+                logger.error('Error getting %s: %s' % (fname, err))
+                continue
+            try:
                 collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
-        except Exception as err:
-            logger.error('Error adding %s: %s' % (item.id, err))
+            except Exception as err:
+                logger.error('Error adding %s: %s' % (item.id, err))
 
 
 def records(collections='all'):
@@ -82,7 +78,8 @@ def records(collections='all'):
                     'id': data[0],
                     'product_id': product_id,
                     'datetime': parse(data[1]),
-                    'url': data[-1]
+                    'url': data[-1],
+                    'filename': os.path.join(data[4], data[5], str(parse(data[1]).date()), data[0] + '.json')
                 }
 
 
