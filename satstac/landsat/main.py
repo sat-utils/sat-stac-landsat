@@ -131,8 +131,8 @@ def transform(data):
         'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
         'eo:sun_elevation': float(md['SUN_ELEVATION']),
         'eo:cloud_cover': int(float(md['CLOUD_COVER'])),
-        'eo:row': md['WRS_ROW'],
-        'eo:column': md['WRS_PATH'],
+        'eo:row': md['WRS_ROW'].zfill(3),
+        'eo:column': md['WRS_PATH'].zfill(3),
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
@@ -176,5 +176,7 @@ def get_metadata(url):
 def read_remote(url):
     """ Return a line iterator for a remote file """
     r = requests.get(url, stream=True)
+    if r.status_code != 400:
+        print('Error: %s not found')
     for line in r.iter_lines():
         yield line.decode()
