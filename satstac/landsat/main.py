@@ -176,7 +176,7 @@ def get_metadata(url):
 def read_remote(url):
     """ Return a line iterator for a remote file """
     r = requests.get(url, stream=True)
-    if r.status_code != 400:
-        print('Error: %s not found')
+    if r.status_code != 200:
+        print('Error: %s not found' % url)
     for line in r.iter_lines():
         yield line.decode()
