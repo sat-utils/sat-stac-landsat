@@ -36,12 +36,14 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         dt = record['datetime'].date()
         if (i % 10000) == 0:
             logger.info('%s: %s records scanned' % (datetime.now(), i))
-        if start_date is not None and dt < start_date:
-            # skip to next if before start_date
+        if (start_date is not None and dt < start_date) or (end_date is not None and dt > end_date):
+            # skip to next if before start_date or after end_date
             continue
-        if end_date is not None and dt > end_date:
-            # stop if after end_date
-            continue
+        fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
+        if os.path.exists(fname):
+            item = Item.open(fname)
+            if item['landsat:tier'] != 'RT':
+                continue
         try:
             item = transform(record)
         except Exception as err:
@@ -49,11 +51,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error getting %s: %s' % (fname, err))
             continue
         try:
-            if item['landsat:tier'] != 'RT':
-                collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
-                logger.debug('Ingested %s in %s' % (item.id, datetime.now()-now))
-            else:
-                logger.info('Skipping real-time data: %s' % item.id)
+            collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 
@@ -77,20 +75,20 @@ def records(collections='all'):
                 if len(data) == 12:
                     product_id = data[0]
                     data = data[1:]
-                    id = product_id
                 else:
-                    product_id = None
-                    id = data[0]
+                    product_id = data[0]
                 yield {
-                    'id': id,
+                    'id': data[0],
+                    'product_id': product_id,
                     'datetime': parse(data[1]),
-                    'url': data[-1]
+                    'url': data[-1],
+                    'filename': os.path.join(data[4], data[5], str(parse(data[1]).date()), data[0] + '.json')
                 }
 
 
 def transform(data):
     """ Transform Landsat metadata into a STAC item """
-    root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
+    root_url = os.path.join(data['url'].replace('index.html', ''), data['product_id'])
     # get metadata
     md = get_metadata(root_url + '_MTL.txt')
 
@@ -133,8 +131,8 @@ def transform(data):
         'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
         'eo:sun_elevation': float(md['SUN_ELEVATION']),
         'eo:cloud_cover': int(float(md['CLOUD_COVER'])),
-        'eo:row': md['WRS_ROW'],
-        'eo:column': md['WRS_PATH'],
+        'eo:row': md['WRS_ROW'].zfill(3),
+        'eo:column': md['WRS_PATH'].zfill(3),
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
@@ -178,5 +176,7 @@ def get_metadata(url):
 def read_remote(url):
     """ Return a line iterator for a remote file """
     r = requests.get(url, stream=True)
+    if r.status_code != 200:
+        print('Error: %s not found' % url)
     for line in r.iter_lines():
         yield line.decode()
