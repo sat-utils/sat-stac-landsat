@@ -73,13 +73,12 @@ def records(collections='all'):
             for line in f:
                 data = line.replace('\n', '').split(',')
                 if len(data) == 12:
-                    product_id = data[0]
+                    id = data[0]
                     data = data[1:]
                 else:
-                    product_id = data[0]
+                    id = data[0]
                 yield {
-                    'id': data[0],
-                    'product_id': product_id,
+                    'id': id,
                     'datetime': parse(data[1]),
                     'url': data[-1],
                     'filename': os.path.join(data[4], data[5], str(parse(data[1]).date()), data[0] + '.json')
@@ -88,7 +87,7 @@ def records(collections='all'):
 
 def transform(data):
     """ Transform Landsat metadata into a STAC item """
-    root_url = os.path.join(data['url'].replace('index.html', ''), data['product_id'])
+    root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
     # get metadata
     md = get_metadata(root_url + '_MTL.txt')
 
@@ -145,7 +144,7 @@ def transform(data):
 
     _item = {
         'type': 'Feature',
-        'id': data['id'],
+        'id': md['LANDSAT_SCENE_ID'],
         'bbox': bbox,
         'geometry': {
             'type': 'Polygon',
