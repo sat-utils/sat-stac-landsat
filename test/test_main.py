@@ -26,7 +26,7 @@ class Test(unittest.TestCase):
 
     def test_c1_records(self):
         for r in landsat.records(collections='c1'):
-            assert(r['id'] == 'LC81490392017101LGN00')
+            assert(r['id'] == 'LC08_L1TP_149039_20170411_20170415_01_T1')
             break
 
     def test_transform(self):
