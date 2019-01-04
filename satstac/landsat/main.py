@@ -39,11 +39,11 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         if (start_date is not None and dt < start_date) or (end_date is not None and dt > end_date):
             # skip to next if before start_date or after end_date
             continue
-        fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
-        if os.path.exists(fname):
-            item = Item.open(fname)
-            if item['landsat:tier'] != 'RT':
-                continue
+        #fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
+        #if os.path.exists(fname):
+        #    item = Item.open(fname)
+        #    if item['landsat:tier'] != 'RT':
+        #        continue
         try:
             item = transform(record)
         except Exception as err:
