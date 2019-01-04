@@ -22,7 +22,7 @@ collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'lands
 # productId,entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 
 
-def add_items(catalog, collections='all', start_date=None, end_date=None):
+def add_items(catalog, collections='all', realtime=False, start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
     
     cols = {c.id: c for c in catalog.collections()}
@@ -31,7 +31,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         cols = {c.id: c for c in catalog.collections()}
     collection = cols['landsat-8-l1']
 
-    for i, record in enumerate(records(collections=collections)):
+    for i, record in enumerate(records(collections=collections, realtime=realtime)):
         now = datetime.now()
         dt = record['datetime'].date()
         if (i % 10000) == 0:
@@ -39,11 +39,6 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         if (start_date is not None and dt < start_date) or (end_date is not None and dt > end_date):
             # skip to next if before start_date or after end_date
             continue
-        #fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
-        #if os.path.exists(fname):
-        #    item = Item.open(fname)
-        #    if item['landsat:tier'] != 'RT':
-        #        continue
         try:
             item = transform(record)
         except Exception as err:
@@ -56,7 +51,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error adding %s: %s' % (item.id, err))
 
 
-def records(collections='all'):
+def records(collections='all', realtime=False):
     """ Return generator function for list of scenes """
 
     filenames = {}
@@ -74,6 +69,9 @@ def records(collections='all'):
                 data = line.replace('\n', '').split(',')
                 if len(data) == 12:
                     id = data[0]
+                    tier = id.split('_')[-1]
+                    if tier == 'RT' and realtime is False:
+                        continue
                     data = data[1:]
                 else:
                     id = data[0]
