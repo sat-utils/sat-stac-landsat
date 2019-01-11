@@ -1,4 +1,5 @@
 import gzip
+import json
 import logging
 import os
 import requests
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
 
+pr2coords = None
 
 # pre-collection
 # entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
@@ -22,7 +24,7 @@ collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'lands
 # productId,entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 
 
-def add_items(catalog, collections='all', start_date=None, end_date=None):
+def add_items(catalog, collections='all', realtime=False, start_date=None, end_date=None):
     """ Stream records to a collection with a transform function """
     
     cols = {c.id: c for c in catalog.collections()}
@@ -31,7 +33,7 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         cols = {c.id: c for c in catalog.collections()}
     collection = cols['landsat-8-l1']
 
-    for i, record in enumerate(records(collections=collections)):
+    for i, record in enumerate(records(collections=collections, realtime=realtime)):
         now = datetime.now()
         dt = record['datetime'].date()
         if (i % 10000) == 0:
@@ -39,16 +41,11 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
         if (start_date is not None and dt < start_date) or (end_date is not None and dt > end_date):
             # skip to next if before start_date or after end_date
             continue
-        fname = os.path.join(os.path.dirname(collection.filename), record['filename'])
-        if os.path.exists(fname):
-            item = Item.open(fname)
-            if item['landsat:tier'] != 'RT':
-                continue
         try:
             item = transform(record)
         except Exception as err:
             fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
-            logger.error('Error getting %s: %s' % (fname, err))
+            logger.error('Error transforming %s: %s' % (fname, err))
             continue
         try:
             collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
@@ -56,12 +53,16 @@ def add_items(catalog, collections='all', start_date=None, end_date=None):
             logger.error('Error adding %s: %s' % (item.id, err))
 
 
-def records(collections='all'):
+def records(collections='all', realtime=False):
     """ Return generator function for list of scenes """
+    # allows us to defer reading this big file unless we need to
+    global pr2coords
 
     filenames = {}
     if collections in ['pre', 'all']:
         filenames['scene_list.gz'] = 'https://landsat-pds.s3.amazonaws.com/scene_list.gz'
+        with open(os.path.join(os.path.dirname(__file__), 'pr2coords.json')) as f:
+            pr2coords = json.loads(f.read())
     if collections in ['c1', 'all']:
         filenames['scene_list-c1.gz'] ='https://landsat-pds.s3.amazonaws.com/c1/L8/scene_list.gz'
 
@@ -74,6 +75,9 @@ def records(collections='all'):
                 data = line.replace('\n', '').split(',')
                 if len(data) == 12:
                     id = data[0]
+                    tier = id.split('_')[-1]
+                    if tier == 'RT' and realtime is False:
+                        continue
                     data = data[1:]
                 else:
                     id = data[0]
@@ -85,24 +89,58 @@ def records(collections='all'):
                 }
 
 
+def coords_from_ANG(url, bbox):
+    try:
+        sz = []
+        coords = []
+        for line in read_remote(url):
+            if 'BAND01_NUM_L1T_LINES' in line or 'BAND01_NUM_L1T_SAMPS' in line:
+                sz.append(float(line.split('=')[1]))
+            if 'BAND01_L1T_IMAGE_CORNER_LINES' in line or 'BAND01_L1T_IMAGE_CORNER_SAMPS' in line:
+                coords.append([float(l) for l in line.split('=')[1].strip().strip('()').split(',')])
+            if len(coords) == 2:
+                break
+        dlon = bbox[2] - bbox[0]
+        dlat = bbox[3] - bbox[1]
+        lons = [c/sz[1] * dlon + bbox[0] for c in coords[1]]
+        lats = [((sz[0] - c)/sz[0]) * dlat + bbox[1] for c in coords[0]]
+        coordinates = [[
+            [lons[0], lats[0]], [lons[1], lats[1]], [lons[2], lats[2]], [lons[3], lats[3]], [lons[0], lats[0]]
+        ]]
+        return coordinates
+    except:
+        logger.warning('Problem reading ANG file, may be pre-collection1 data: %s' % url)
+        # TODO - retrieve from WRS-3 using path/row
+        return None    
+
 def transform(data):
     """ Transform Landsat metadata into a STAC item """
     root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
     # get metadata
     md = get_metadata(root_url + '_MTL.txt')
 
+    # needed later
+    path = md['WRS_PATH'].zfill(3)
+    row = md['WRS_ROW'].zfill(3)
+    tier = md.get('COLLECTION_CATEGORY', 'pre-collection')
+
     # geo
-    coordinates = [[
+    coords = [[
         [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])],
         [float(md['CORNER_UR_LON_PRODUCT']), float(md['CORNER_UR_LAT_PRODUCT'])],
         [float(md['CORNER_LR_LON_PRODUCT']), float(md['CORNER_LR_LAT_PRODUCT'])],
         [float(md['CORNER_LL_LON_PRODUCT']), float(md['CORNER_LL_LAT_PRODUCT'])],
         [float(md['CORNER_UL_LON_PRODUCT']), float(md['CORNER_UL_LAT_PRODUCT'])]
     ]]
-
-    lats = [c[1] for c in coordinates[0]]
-    lons = [c[0] for c in coordinates[0]]
+    lats = [c[1] for c in coords[0]]
+    lons = [c[0] for c in coords[0]]
     bbox = [min(lons), min(lats), max(lons), max(lats)]
+
+    coordinates = None
+    if tier != 'pre-collection':
+        coordinates = coords_from_ANG(root_url + '_ANG.txt', bbox)
+    if coordinates is None:
+        coordinates = pr2coords[path+row]
 
     assets = collection_l8l1.data['assets']
     assets = utils.dict_merge(assets, {
@@ -130,12 +168,12 @@ def transform(data):
         'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
         'eo:sun_elevation': float(md['SUN_ELEVATION']),
         'eo:cloud_cover': int(float(md['CLOUD_COVER'])),
-        'eo:row': md['WRS_ROW'].zfill(3),
-        'eo:column': md['WRS_PATH'].zfill(3),
+        'eo:row': row,
+        'eo:column': path,
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
-        'landsat:tier': md.get('COLLECTION_CATEGORY', 'pre-collection')
+        'landsat:tier': tier
     }
 
     if 'UTM_ZONE' in md:
