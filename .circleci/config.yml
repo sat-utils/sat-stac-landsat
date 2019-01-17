@@ -43,6 +43,7 @@ jobs:
           name: Deploy
           command: |
             if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
+              # deploy Lambda
               sudo pip install awscli
               pip install . -t lambda/
               cd lambda/; zip -ru ../lambda-deploy.zip ./; cd ..
