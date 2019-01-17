@@ -71,9 +71,19 @@ There is an [open issue](https://github.com/sat-utils/sat-stac-landsat/issues/6)
 
 ## Development
 
-The `master` branch is the latest versioned release, while the `develop` branch is the latest development version.
+The `master` branch is the latest versioned release, while the `develop` branch is the latest development version. When making a new release:
 
-On a release (merge to `master`) the Lambda code will be packaged and deployed to the production Lambda function that listens (via SNS) for new Landsat scenes, creates STAC Items and adds them to the Catalog.
+- Update the [version](satstac.landsat.version.py)
+- Update [CHANGELOG.md](CHANGELOG.md)
+- Create PR and merge to master
+- Create new tag with the version and push to GitHub:
+
+```bash
+$ git tag `<version>`
+$ git push origin `<version>`
+```
+
+On a release (merge to `master`) CircleCI will package the Lambda code and deploy it to the production Lambda function that listens (via SNS) for new Landsat scenes, creates STAC Items and adds them to the Catalog.
 
 
 ## About
