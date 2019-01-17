@@ -66,6 +66,8 @@ If the image is not Collection-1, or if the ANG file is unavailable, the scene's
 
 ![](images/geometry-wrs2.png)
 
+There is an [open issue](https://github.com/sat-utils/sat-stac-landsat/issues/6) to calculate more accurate boundaries and use the same method for all data: 
+
 
 ## Development
 
