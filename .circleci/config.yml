@@ -43,12 +43,6 @@ jobs:
           name: Deploy
           command: |
             if [[ "$CIRCLE_BRANCH" == 'master' ]]; then
-              # tag and push to GitHub
-              mkdir -p ~/.ssh
-              ssh-keyscan github.com >> ~/.ssh/known_hosts              
-              VERSION=`awk -F\' '{print $2,$4}' satstac/version.py`
-              git tag $VERSION
-              git push origin $VERSION
               # deploy Lambda
               sudo pip install awscli
               pip install . -t lambda/
