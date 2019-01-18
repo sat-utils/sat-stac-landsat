@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 client = boto3.client('sns', region_name='us-west-2')
+kinesis_client = boto3.client('kinesis', region_name='us-west-2')
 
 sns_arn = 'arn:aws:sns:us-west-2:552188055668:landsat-stac'
 
@@ -35,5 +36,12 @@ def lambda_handler(event, context):
         logger.debug('Item: %s' % json.dumps(item.data))
         collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
         logger.info('Added %s as %s' % (item, item.filename))
-        client.publish(TopicArn=sns_arn, Message=json.dumps(item.data))
+        data = json.dumps(item.data)
+        client.publish(TopicArn=sns_arn, Message=data)
         logger.info('Published to %s' % sns_arn)
+        # push to stream if envvar set
+        stream = os.getenv('STREAM_NAME', None)
+        if stream:
+            resp = kinesis_client.put_record(StreamName=stream, Data=data, PartitionKey='one')
+            logger.debug('Kinesis response: %s' % resp)
+            
