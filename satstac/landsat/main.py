@@ -48,7 +48,7 @@ def add_items(catalog, collections='all', realtime=False, start_date=None, end_d
             logger.error('Error transforming %s: %s' % (fname, err))
             continue
         try:
-            collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
+            collection.add_item(item, path='${eo:column}/${eo:row}', filename='${date}/${id}')
         except Exception as err:
             logger.error('Error adding %s: %s' % (item.id, err))
 

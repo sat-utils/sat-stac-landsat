@@ -34,7 +34,7 @@ def lambda_handler(event, context):
         # transform to STAC
         item = transform(data)
         logger.debug('Item: %s' % json.dumps(item.data))
-        collection.add_item(item, path='${eo:column}/${eo:row}/${date}')
+        collection.add_item(item, path='${eo:column}/${eo:row}', filename= '${date}/${id}')
         logger.info('Added %s as %s' % (item, item.filename))
         data = json.dumps(item.data)
         client.publish(TopicArn=sns_arn, Message=data)
