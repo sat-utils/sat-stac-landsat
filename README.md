@@ -9,6 +9,10 @@ There are two pieces of this repository:
 
 To create the Landsat STAC catalog located at https://landsat-stac.s3.amazonaws.com/catalog.json the sat-stac-landsat CLI was used to create the initial catalog of historical data. The Lambda function is deployed and keeping the catalog up to date with new scenes.
 
+## Installation
+
+Sat-stac-landsat can be installed from this repository. It is not in PyPi because it is not a library that is going to be of general use. It exists to create a Landsat STAC catalog and keep it up to date, which is currently ongoing.
+
 
 ## Usage
 
