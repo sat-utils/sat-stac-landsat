@@ -13,7 +13,6 @@ To create the Landsat STAC catalog located at https://landsat-stac.s3.amazonaws.
 
 Sat-stac-landsat can be installed from this repository. It is not in PyPi because it is not a library that is going to be of general use. It exists to create a Landsat STAC catalog and keep it up to date, which is currently ongoing.
 
-
 ## Usage
 
 A command line tool is available for ingesting the existing Landsat data and creating/adding to a STAC catalog.
