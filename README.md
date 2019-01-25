@@ -1,6 +1,8 @@
 # sat-stac-landsat
 
-This is a repository used for the creation and maintenance of a [STAC](https://github.com/radiantearth/stac-spec) compliant [Landsat catalog](https://landsat-stac.s3.amazonaws.com/catalog.json) for data from the [Landsat on AWS project](https://registry.opendata.aws/landsat-8/) (located at s3://landsat-pds/).
+This is a repository used for the creation and maintenance of a [STAC](https://github.com/radiantearth/stac-spec) compliant [Landsat catalog](https://landsat-stac.s3.amazonaws.com/catalog.json) for data from the [Landsat on AWS project](https://registry.opendata.aws/landsat-8/) (located at s3://landsat-pds/). New STAC Items (i.e., Landsat scenes) are published to an SNS Topic on AWS: 'arn:aws:sns:us-west-2:552188055668:landsat-stac'
+
+The catalog can be browsed at https://landsat-stac.s3.amazonaws.com/index.html.
 
 There are two pieces of this repository:
 
