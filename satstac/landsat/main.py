@@ -6,6 +6,7 @@ import os
 import requests
 import sys
 
+from botocore.exceptions import ClientError
 from datetime import datetime
 from dateutil.parser import parse
 from satstac import Collection, Item, utils
@@ -233,10 +234,13 @@ def read_remote(url):
 def exists_on_s3(bucket, key):
     """ Check if this URL exists on S3 """
     try:
-        obj = s3.get_object(Bucket=bucket, Key=key)
-        return True
-    except Exception as e:
-        if e.response['Error']['Code'] == 'NoSuchKey':
-            return False
-        else:
+        obj = s3.head_object(Bucket=bucket, Key=key)
+        return obj['ContentLength']
+    except ClientError as exc:
+        if exc.response['Error']['Code'] != '404':
             raise
+    #except Exception as e:
+    #    if e.response['Error']['Code'] == 'NoSuchKey':
+    #        return False
+    #    else:
+    #        raise
