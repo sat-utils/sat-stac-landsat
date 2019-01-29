@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Option to only add items that are missing from catalog
+- Added landsat:revision to properties
 
 
-## [v0.1.0] - 2018-10-25
+## [v0.1.0] - 2019-01-17
 
 Initial Release
 

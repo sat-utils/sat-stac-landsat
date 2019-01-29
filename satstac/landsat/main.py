@@ -185,7 +185,8 @@ def transform(data):
         'landsat:product_id': md.get('LANDSAT_PRODUCT_ID', None),
         'landsat:scene_id': md['LANDSAT_SCENE_ID'],
         'landsat:processing_level': md['DATA_TYPE'],
-        'landsat:tier': tier
+        'landsat:tier': tier,
+        'landsat:revision': md['LANDSAT_SCENE_ID'][-2:]
     }
 
     if 'UTM_ZONE' in md:
