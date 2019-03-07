@@ -195,7 +195,7 @@ def transform(data):
 
     _item = {
         'type': 'Feature',
-        'id': md['LANDSAT_SCENE_ID'],
+        'id': md['LANDSAT_SCENE_ID'][:-5],
         'bbox': bbox,
         'geometry': {
             'type': 'Polygon',

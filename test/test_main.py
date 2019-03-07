@@ -32,6 +32,7 @@ class Test(unittest.TestCase):
     def test_transform(self):
         for r in landsat.records():
             item = landsat.transform(r)
+            assert(item.id == 'LC80101172015002')
             assert(str(item.date) == '2015-01-02')
             break
 
