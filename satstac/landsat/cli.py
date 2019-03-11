@@ -35,6 +35,7 @@ def parse_args(args):
     valid_date = lambda d: datetime.strptime(d, '%Y-%m-%d').date()
     parser.add_argument('-c', '--collections', help='Collection to ingest (pre, c1, or all)', default='all')
     parser.add_argument('--realtime', help='Also ingest realtime data', action='store_true', default=False)
+    parser.add_argument('--missing', help='Only ingest missing items', action='store_true', default=False)
     parser.add_argument('--start', help='Start date of ingestion', default=None, type=valid_date)
     parser.add_argument('--end', help='End date of ingestion', default=None, type=valid_date)
 
@@ -56,7 +57,7 @@ def cli():
     if cmd == 'ingest':
         cat = Catalog.open(args['catalog'])
         landsat.add_items(cat, collections=args['collections'], realtime=args['realtime'],
-                          start_date=args['start'], end_date=args['end'])
+                          missing=args['missing'], start_date=args['start'], end_date=args['end'])
     elif cmd == 'cmd2':
         print(cmd)
 
