@@ -125,7 +125,7 @@ def coords_from_ANG(url, bbox):
         # TODO - retrieve from WRS-3 using path/row
         return None    
 
-def transform(data):
+def transform(data, collection=collection_l8l1):
     """ Transform Landsat metadata into a STAC item """
     root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
     # get metadata
@@ -154,7 +154,7 @@ def transform(data):
     if coordinates is None:
         coordinates = pr2coords[path+row]
 
-    assets = collection_l8l1.data['assets']
+    assets = collection.data['assets']
     assets = utils.dict_merge(assets, {
         'index': {'href': data['url']},
         'thumbnail': {'href': root_url + '_thumb_large.jpg'},
@@ -175,7 +175,7 @@ def transform(data):
     })
 
     props = {
-        'collection': 'landsat-8-l1',
+        'collection': collection.id,
         'datetime': parse('%sT%s' % (md['DATE_ACQUIRED'], md['SCENE_CENTER_TIME'])).isoformat(),
         'eo:sun_azimuth': float(md['SUN_AZIMUTH']),
         'eo:sun_elevation': float(md['SUN_ELEVATION']),
