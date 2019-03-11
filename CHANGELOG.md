@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Option to only add items that are missing from catalog
 - Added landsat:revision to properties
 - Misc example Python scripts for updating elasticsearch
+- Accept s3 URLs to transform function
 
 ### Changed
 - Internal Item ID changed to be Landsat Scene ID without last 5 characters (ground station and revision). This ensures only the single latest revision is in the catalog.
+- Function signature for transform function to enable easier integration for creating other Landsat collections
 
 
 ## [v0.1.0] - 2019-01-17
