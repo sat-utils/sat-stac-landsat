@@ -225,11 +225,17 @@ def get_metadata(url):
 
 def read_remote(url):
     """ Return a line iterator for a remote file """
-    r = requests.get(url, stream=True)
-    if r.status_code != 200:
-        print('Error: %s not found' % url)
-    for line in r.iter_lines():
-        yield line.decode()
+    if 's3://' in url:
+        parts = url.replace('s3://', '').split('/')
+        obj = s3.get_object(Bucket=parts[0], Key='/'.join(parts[1:]))
+        for line in obj['Body'].read().decode().split('\n'):
+            yield line
+    else:
+        r = requests.get(url, stream=True)
+        if r.status_code != 200:
+            print('Error: %s not found' % url)
+        for line in r.iter_lines():
+            yield line.decode()
 
 
 def exists_on_s3(bucket, key):
