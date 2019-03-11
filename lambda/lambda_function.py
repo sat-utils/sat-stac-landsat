@@ -26,13 +26,9 @@ def lambda_handler(event, context):
         logger.info('Message: %s' % json.dumps(m))
         url = 'https://%s.s3.amazonaws.com/%s' % (m['s3']['bucket']['name'], m['s3']['object']['key'])
         id = os.path.splitext(os.path.basename(os.path.dirname(url)))[0]
-        data = {
-            'id': id,
-            'datetime': datetime.strptime(id.split('_')[3], '%Y%m%d'),
-            'url': url
-        }
         # transform to STAC
-        item = transform(data)
+        mtl_url = url.replace('index.html', '%s_MTL.txt' % id)
+        item = transform(mtl_url)
         logger.debug('Item: %s' % json.dumps(item.data))
         collection.add_item(item, path='${eo:column}/${eo:row}', filename= '${date}/${id}')
         logger.info('Added %s as %s' % (item, item.filename))

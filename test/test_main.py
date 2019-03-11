@@ -31,14 +31,16 @@ class Test(unittest.TestCase):
 
     def test_transform(self):
         for r in landsat.records():
-            item = landsat.transform(r)
+            mtl = r['url'].replace('index.html', '%s_MTL.txt' % r['id'])
+            item = landsat.transform(mtl)
             assert(item.id == 'LC80101172015002')
             assert(str(item.date) == '2015-01-02')
             break
 
     def test_c1_transform(self):
         for r in landsat.records(collections='c1'):
-            item = landsat.transform(r)
+            mtl = r['url'].replace('index.html', '%s_MTL.txt' % r['id'])
+            item = landsat.transform(mtl)
             assert(str(item.date) == '2017-04-11')
             break
 

@@ -54,9 +54,9 @@ def add_items(catalog, collections='all', realtime=False, missing=False, start_d
             if exists_on_s3(bucket, key):
                 continue
         try:
-            item = transform(record)
-        except Exception as err:
             fname = record['url'].replace('index.html', '%s_MTL.txt' % record['id'])
+            item = transform(fname)
+        except Exception as err:
             logger.error('Error transforming %s: %s' % (fname, err))
             continue
         try:
@@ -125,11 +125,11 @@ def coords_from_ANG(url, bbox):
         # TODO - retrieve from WRS-3 using path/row
         return None    
 
-def transform(data, collection=collection_l8l1):
-    """ Transform Landsat metadata into a STAC item """
-    root_url = os.path.join(data['url'].replace('index.html', ''), data['id'])
+def transform(url, collection=collection_l8l1):
+    """ Transform Landsat metadata (URL to MTL File) into a STAC item """
     # get metadata
-    md = get_metadata(root_url + '_MTL.txt')
+    root_url = url.replace('_MTL.txt', '')
+    md = get_metadata(url)
 
     # needed later
     path = md['WRS_PATH'].zfill(3)
@@ -156,7 +156,7 @@ def transform(data, collection=collection_l8l1):
 
     assets = collection.data['assets']
     assets = utils.dict_merge(assets, {
-        'index': {'href': data['url']},
+        'index': {'href': url},
         'thumbnail': {'href': root_url + '_thumb_large.jpg'},
         'B1': {'href': root_url + '_B1.TIF'},
         'B2': {'href': root_url + '_B2.TIF'},
