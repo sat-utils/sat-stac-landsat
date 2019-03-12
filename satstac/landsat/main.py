@@ -19,12 +19,18 @@ logger = logging.getLogger(__name__)
 
 collection_l8l1 = Collection.open(os.path.join(os.path.dirname(__file__), 'landsat-8-l1.json'))
 
-pr2coords = None
-
 # pre-collection
 # entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
 # collection-1
 # productId,entityId,acquisitionDate,cloudCover,processingLevel,path,row,min_lat,min_lon,max_lat,max_lon,download_url
+
+_pr2coords = None
+def pr2coords(pr):
+    global _pr2coords
+    if _pr2coords is None:
+        with open(os.path.join(os.path.dirname(__file__), 'pr2coords.json')) as f:
+            _pr2coords = json.loads(f.read())
+    return _pr2coords[pr]
 
 
 def add_items(catalog, collections='all', realtime=False, missing=False, start_date=None, end_date=None):
@@ -73,8 +79,6 @@ def records(collections='all', realtime=False):
     filenames = {}
     if collections in ['pre', 'all']:
         filenames['scene_list.gz'] = 'https://landsat-pds.s3.amazonaws.com/scene_list.gz'
-        with open(os.path.join(os.path.dirname(__file__), 'pr2coords.json')) as f:
-            pr2coords = json.loads(f.read())
     if collections in ['c1', 'all']:
         filenames['scene_list-c1.gz'] ='https://landsat-pds.s3.amazonaws.com/c1/L8/scene_list.gz'
 
@@ -152,7 +156,7 @@ def transform(url, collection=collection_l8l1):
     if tier != 'pre-collection':
         coordinates = coords_from_ANG(root_url + '_ANG.txt', bbox)
     if coordinates is None:
-        coordinates = pr2coords[path+row]
+        coordinates = pr2coords(path+row)
 
     assets = collection.data['assets']
     assets = utils.dict_merge(assets, {

@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Internal Item ID changed to be Landsat Scene ID without last 5 characters (ground station and revision). This ensures only the single latest revision is in the catalog.
 - Function signature for transform function to enable easier integration for creating other Landsat collections
 
+### Fixed
+- Getting geometries from path/row lookup table when generating from ANG file fails
 
 ## [v0.1.0] - 2019-01-17
 
